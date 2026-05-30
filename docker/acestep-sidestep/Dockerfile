@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
 
 ARG ACE_REPO_URL=https://github.com/ACE-Step/ACE-Step-1.5.git
@@ -38,8 +39,24 @@ RUN ACE_REPO_URL="$ACE_REPO_URL" ACE_REF="$ACE_REF" ACE_DIR="$ACE_DIR" PERSIST_D
 
 RUN git clone "$SIDESTEP_REPO_URL" "$SIDESTEP_DIR" \
     && cd "$SIDESTEP_DIR" \
-    && git checkout "$SIDESTEP_REF" \
-    && python3 -c "from pathlib import Path; import re; p=Path('pyproject.toml'); t=p.read_text(); t=re.sub(r',?\\s*\\{\\s*url\\s*=\\s*\\\"[^\\\"]*win_amd64[^\\\"]*\\\"[^}]*\\}', '', t); t=re.sub(r',?\\s*\\\"flash-attn[^\\\"]*\\\"', '', t); t=re.sub(r',?\\s*\\{\\s*url\\s*=\\s*\\\"[^\\\"]*flash-attention[^\\\"]*\\\"[^}]*\\}', '', t); t=t.replace('[ ,', '[').replace(', ]', ' ]'); p.write_text(t)" \
+    && git checkout "$SIDESTEP_REF"
+
+RUN cd "$SIDESTEP_DIR" \
+    && python3 <<'PY'
+from pathlib import Path
+import re
+
+path = Path("pyproject.toml")
+text = path.read_text()
+text = re.sub(r'(?ms)^\s*flash-attn\s*=\s*\[\n.*?^\s*\]\n', '', text)
+text = re.sub(r'(?m)^\s*"flash-attn[^"]*",\n?', '', text)
+text = re.sub(r'(?ms)^\s*\{\s*url\s*=\s*"[^"]*flash-attention[^"]*"[^}]*\},?\n?', '', text)
+text = re.sub(r"\[\s*,", "[", text)
+text = re.sub(r",\s*\]", "]", text)
+path.write_text(text)
+PY
+
+RUN cd "$SIDESTEP_DIR" \
     && uv sync --no-dev \
     && uv run --no-sync python -c "import sidestep_engine; print('Side-Step installed:', sidestep_engine.__file__)" \
     && git rev-parse HEAD > /opt/Side-Step/.image_git_revision
