@@ -59,6 +59,7 @@ PY
 
 RUN cd "$SIDESTEP_DIR" \
     && uv pip install --python "$ACE_DIR/.venv/bin/python" -e . \
+    && uv pip install --python "$ACE_DIR/.venv/bin/python" "$ACE_DIR/acestep/third_parts/nano-vllm" \
     && ln -sfn "$ACE_DIR/.venv" "$SIDESTEP_DIR/.venv" \
     && "$SIDESTEP_DIR/.venv/bin/python" -c "import sidestep_engine; print('Side-Step installed:', sidestep_engine.__file__)" \
     && rm -rf "$UV_CACHE_DIR" \
