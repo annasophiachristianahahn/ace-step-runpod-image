@@ -96,7 +96,9 @@ required = [
 for item in required:
     if not Path(item).exists():
         raise SystemExit(f"Missing ACE runtime file: {item}")
-missing = [name for name in ["torchao", "torchcodec", "nano_vllm"] if importlib.util.find_spec(name) is None]
+missing = [name for name in ["torchao", "torchcodec"] if importlib.util.find_spec(name) is None]
+if importlib.util.find_spec("nanovllm") is None and importlib.util.find_spec("nano_vllm") is None:
+    missing.append("nano-vllm")
 if missing:
     raise SystemExit(f"Missing ACE official dependencies: {missing}")
 if not torch.__version__.startswith("2.10.0"):
