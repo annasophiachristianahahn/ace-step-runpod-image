@@ -35,7 +35,8 @@ RUN chmod +x \
       /usr/local/bin/runpod_runtime_smoke_test.sh
 
 RUN ACE_REPO_URL="$ACE_REPO_URL" ACE_REF="$ACE_REF" ACE_DIR="$ACE_DIR" PERSIST_DIR="$PERSIST_DIR" CHECKPOINTS_DIR="$CHECKPOINTS_DIR" \
-    /usr/local/bin/bootstrap_runpod_acestep.sh
+    /usr/local/bin/bootstrap_runpod_acestep.sh \
+    && rm -rf "$UV_CACHE_DIR"
 
 RUN git clone "$SIDESTEP_REPO_URL" "$SIDESTEP_DIR" \
     && cd "$SIDESTEP_DIR" \
@@ -57,8 +58,10 @@ path.write_text(text)
 PY
 
 RUN cd "$SIDESTEP_DIR" \
-    && uv sync --no-dev \
-    && uv run --no-sync python -c "import sidestep_engine; print('Side-Step installed:', sidestep_engine.__file__)" \
+    && uv pip install --python "$ACE_DIR/.venv/bin/python" -e . \
+    && ln -sfn "$ACE_DIR/.venv" "$SIDESTEP_DIR/.venv" \
+    && "$SIDESTEP_DIR/.venv/bin/python" -c "import sidestep_engine; print('Side-Step installed:', sidestep_engine.__file__)" \
+    && rm -rf "$UV_CACHE_DIR" \
     && git rev-parse HEAD > /opt/Side-Step/.image_git_revision
 
 RUN /usr/local/bin/verify_runpod_runtime.sh
