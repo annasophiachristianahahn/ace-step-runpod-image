@@ -1,0 +1,73 @@
+name: Build RunPod Training Image
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/acestep-sidestep
+  PINNED_TAG: 2026-05-30-ace6c1b2ef-sideecd13bdd
+
+jobs:
+  build:
+    name: Build and push linux/amd64 image
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free runner disk space
+        run: |
+          set -euxo pipefail
+          sudo rm -rf \
+            /usr/local/lib/android \
+            /usr/share/dotnet \
+            /opt/ghc \
+            /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL
+          docker system prune --all --force --volumes || true
+          df -h
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/acestep-sidestep/Dockerfile
+          platforms: linux/amd64
+          push: true
+          no-cache: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ env.PINNED_TAG }}
+            ${{ env.IMAGE_NAME }}:latest-pinned
+          labels: |
+            org.opencontainers.image.title=ACE-Step Side-Step RunPod Training Image
+            org.opencontainers.image.description=Pinned ACE-Step/Side-Step runtime for RunPod training; model weights are stored outside the image.
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Record image digest
+        run: |
+          {
+            echo "## Image pushed"
+            echo ""
+            echo "- Image: \`${IMAGE_NAME}:${PINNED_TAG}\`"
+            echo "- Alias: \`${IMAGE_NAME}:latest-pinned\`"
+            echo "- Digest: \`${{ steps.build.outputs.digest }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
