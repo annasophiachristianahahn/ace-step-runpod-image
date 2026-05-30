@@ -8,7 +8,7 @@ on:
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/acestep-sidestep
-  PINNED_TAG: 2026-05-30-ace6c1b2ef-sideecd13bdd
+  PINNED_TAG: 2026-05-30-acedce6214-sideecd13bdd
 
 jobs:
   build:

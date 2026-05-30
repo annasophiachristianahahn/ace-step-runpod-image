@@ -1,7 +1,7 @@
 FROM runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
 
 ARG ACE_REPO_URL=https://github.com/ACE-Step/ACE-Step-1.5.git
-ARG ACE_REF=6c1b2ef130bb7a7705a2abc61c11a258202b9ed2
+ARG ACE_REF=dce621408bee8c31b4fcf4811682eb9359e1bc94
 ARG SIDESTEP_REPO_URL=https://github.com/koda-dernet/Side-Step.git
 ARG SIDESTEP_REF=ecd13bdd1a1e7189582c032f875d5b90efdc77d5
 
