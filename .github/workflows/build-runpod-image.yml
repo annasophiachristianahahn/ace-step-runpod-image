@@ -34,6 +34,17 @@ jobs:
           docker system prune --all --force --volumes || true
           df -h
 
+      - name: Move Docker data root to /mnt
+        run: |
+          set -euxo pipefail
+          sudo systemctl stop docker
+          sudo mkdir -p /mnt/docker
+          sudo rsync -aHAX --delete /var/lib/docker/ /mnt/docker/
+          echo '{"data-root":"/mnt/docker"}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl start docker
+          docker info --format 'Docker root: {{.DockerRootDir}}'
+          df -h / /mnt
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -53,6 +64,7 @@ jobs:
           platforms: linux/amd64
           push: true
           no-cache: true
+          provenance: false
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.PINNED_TAG }}
             ${{ env.IMAGE_NAME }}:latest-pinned
