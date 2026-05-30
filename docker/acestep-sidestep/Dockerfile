@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM runpod/pytorch:2.8.0-py3.11-cuda12.8.1-cudnn-devel-ubuntu22.04
+FROM runpod/base:1.0.3-cuda1281-ubuntu2204
 
 ARG ACE_REPO_URL=https://github.com/ACE-Step/ACE-Step-1.5.git
 ARG ACE_REF=dce621408bee8c31b4fcf4811682eb9359e1bc94
@@ -15,10 +15,14 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PATH=/root/.local/bin:/opt/ACE-Step-1.5/.venv/bin:$PATH
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+      build-essential \
       ca-certificates \
       curl \
       git \
       libsndfile1 \
+      python3 \
+      python3-pip \
+      python3-venv \
       rsync \
       tmux \
       ffmpeg \
